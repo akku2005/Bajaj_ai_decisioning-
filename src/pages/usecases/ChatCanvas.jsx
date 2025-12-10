@@ -2,17 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, Sparkles } from 'lucide-react';
 
 const ChatCanvas = ({ isOpen = false, onClose, initialMessage, useCaseName, inlineMode = false }) => {
-    const [messages, setMessages] = useState([
-        {
-            id: 1,
-            sender: 'ai',
-            text: `Hello! I'm your AI assistant for **${useCaseName}**. How can I help you optimize this campaign today?`,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-    ]);
+    const starterMessage = {
+        id: 1,
+        sender: 'ai',
+        text: `Hey! I'm here for the "${useCaseName}" use case. Ask anything about its budget, timeline, or performance.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    const [messages, setMessages] = useState([starterMessage]);
     const [inputValue, setInputValue] = useState('');
 
     const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        // Reset conversation context when switching use cases
+        setMessages([{
+            ...starterMessage,
+            text: `Hey! I'm here for the "${useCaseName}" use case. Ask anything about its budget, timeline, or performance.`
+        }]);
+    }, [useCaseName]);
 
     useEffect(() => {
         if (initialMessage && isOpen) {
@@ -26,7 +33,7 @@ const ChatCanvas = ({ isOpen = false, onClose, initialMessage, useCaseName, inli
                 setMessages(prev => [...prev, {
                     id: Date.now() + 1,
                     sender: 'ai',
-                    text: "I've analyzed the campaign data. Based on the current trends, targeting the 'High Intent' segment with a specialized offer could improve conversion rates by up to 15%. Would you like me to draft a proposal?",
+                    text: `I reviewed the "${useCaseName}" use case metrics. Focusing on the best-performing segment and reallocating budget toward the top channel can lift results without spinning up new campaigns. Want me to outline next steps?`,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 }]);
             }, 1000);
@@ -37,12 +44,13 @@ const ChatCanvas = ({ isOpen = false, onClose, initialMessage, useCaseName, inli
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isOpen]);
 
-    const handleSend = () => {
-        if (!inputValue.trim()) return;
+    const handleSend = (customText) => {
+        const outbound = customText ?? inputValue;
+        if (!outbound.trim()) return;
         const newUserMsg = {
             id: Date.now(),
             sender: 'user',
-            text: inputValue,
+            text: outbound,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, newUserMsg]);
@@ -51,7 +59,7 @@ const ChatCanvas = ({ isOpen = false, onClose, initialMessage, useCaseName, inli
             const aiMsg = {
                 id: Date.now() + 1,
                 sender: 'ai',
-                text: "That's a great question. Looking at the budget utilization, we have enough runway to experiment with a new channel. I recommend exploring WhatsApp for higher engagement.",
+                text: "Noted. I'll stay focused on this use case only. Looking at the budget and time left, we can redirect spend to the best-performing channel and trim low-ROI segments. Want a quick action plan?",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
             setMessages((prev) => [...prev, aiMsg]);
@@ -61,6 +69,13 @@ const ChatCanvas = ({ isOpen = false, onClose, initialMessage, useCaseName, inli
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') handleSend();
     };
+
+    const quickPrompts = [
+        `Give me a quick status for ${useCaseName}`,
+        `How should we reallocate budget for ${useCaseName}?`,
+        `Which channel should we prioritize for ${useCaseName}?`,
+        `Biggest risk to hitting the goal for ${useCaseName}?`,
+    ];
 
     const containerClasses = inlineMode
         ? 'h-full bg-white border border-gray-200 rounded-xl shadow-sm'
@@ -124,7 +139,18 @@ const ChatCanvas = ({ isOpen = false, onClose, initialMessage, useCaseName, inli
                     <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 bg-white border-t border-gray-100">
+                <div className="p-4 bg-white border-t border-gray-100 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                        {quickPrompts.map((prompt) => (
+                            <button
+                                key={prompt}
+                                onClick={() => handleSend(prompt)}
+                                className="px-3 py-1 text-xs border border-gray-200 rounded-full text-gray-700 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                            >
+                                {prompt}
+                            </button>
+                        ))}
+                    </div>
                     <div className="relative">
                         <input
                             type="text"

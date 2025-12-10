@@ -1,5 +1,6 @@
-import React from 'react';
-import { CalendarDays, RefreshCw, Download, Send, Activity, Target, Zap, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { CalendarDays, RefreshCw, Download, Send, Activity, Target, Zap, BarChart3, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
+import ChatCanvas from './usecases/ChatCanvas';
 
 const stats = [
   { label: 'Total Sent', value: '645,000', change: '+12.5% vs last month', positive: true, icon: Send },
@@ -154,8 +155,28 @@ const badgeColor = (value, baseline) => {
 };
 
 const Reporting = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [initialMessage, setInitialMessage] = useState('');
+  const [chatPrompt, setChatPrompt] = useState('');
+  const [showAssistantCard, setShowAssistantCard] = useState(true);
+
+  const reportingSuggestions = [
+    'Give me a weekly summary for reporting',
+    'Highlight anomalies in this month’s KPIs',
+    'Channel performance recap for leadership',
+    'Top movers vs last month across channels',
+    'Forecast next quarter KPIs from current trend',
+    'Export-ready talking points for this report',
+  ];
+
+  const pageStyle = {
+    width: '100%',
+    maxWidth: '100%',
+    ...(isChatOpen ? { paddingRight: '440px' } : {}),
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative transition-all" style={pageStyle}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">System Reporting Dashboard</h1>
@@ -369,6 +390,85 @@ const Reporting = () => {
           </table>
         </div>
       </div>
+
+      {showAssistantCard && (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Reporting Assistant</p>
+              <p className="text-xs text-green-600">Online & Ready</p>
+            </div>
+            <button
+              onClick={() => {
+                setInitialMessage('');
+                setIsChatOpen(true);
+                setShowAssistantCard(false);
+              }}
+              className="px-3 py-1 rounded-md bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Open Chat
+            </button>
+          </div>
+          <p className="text-sm text-gray-600 flex items-center gap-1">
+            <Sparkles size={14} className="text-blue-500" />
+            Ask for summaries, anomalies, or export-ready insights. This chat is focused on reporting only.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {reportingSuggestions.map((chip) => (
+              <button
+                key={chip}
+                onClick={() => {
+                  setChatPrompt('');
+                  setInitialMessage(chip);
+                  setIsChatOpen(true);
+                  setShowAssistantCard(false);
+                }}
+                className="px-3 py-1 rounded-full border border-gray-200 text-xs text-gray-700 hover:border-blue-300 hover:text-blue-700"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <input
+              type="text"
+              value={chatPrompt}
+              onChange={(e) => setChatPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && chatPrompt.trim() && (() => {
+                setInitialMessage(chatPrompt.trim());
+                setIsChatOpen(true);
+                setShowAssistantCard(false);
+                setChatPrompt('');
+              })()}
+              placeholder="Ask the reporting assistant..."
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={() => {
+                if (!chatPrompt.trim()) return;
+                setInitialMessage(chatPrompt.trim());
+                setIsChatOpen(true);
+                setShowAssistantCard(false);
+                setChatPrompt('');
+              }}
+              className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ChatCanvas
+        isOpen={isChatOpen}
+        onClose={() => {
+          setIsChatOpen(false);
+          setShowAssistantCard(true);
+        }}
+        initialMessage={initialMessage}
+        useCaseName="Reporting Agent"
+        inlineMode={false}
+      />
     </div>
   );
 };

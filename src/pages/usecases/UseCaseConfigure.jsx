@@ -39,6 +39,7 @@ const UseCaseConfigure = ({ useCase, onBack, onActivate = () => { } }) => {
   const [newDim, setNewDim] = useState({ name: '', description: '', sendTo: '', locked: false, type: 'other' });
   const [showActionModal, setShowActionModal] = useState(false);
   const [newAction, setNewAction] = useState({ name: '', description: '', value: '', cost: '', type: 'SMS' });
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   const actionTabMap = useMemo(
     () => ({
@@ -134,6 +135,35 @@ const UseCaseConfigure = ({ useCase, onBack, onActivate = () => { } }) => {
     return null;
   };
 
+  const summaryItems = useMemo(() => {
+    if (!useCase) return [];
+    const safe = (val, fallback = 'Not set') => (val === undefined || val === null || val === '' ? fallback : val);
+    const timelineText =
+      useCase.timeline?.start || useCase.timeline?.end
+        ? `${safe(useCase.timeline?.start)} → ${safe(useCase.timeline?.end)}`
+        : 'Not set';
+    const perfText =
+      useCase.achieved?.value || useCase.expected?.value
+        ? `${safe(useCase.achieved?.value)} / ${safe(useCase.expected?.value)}`
+        : null;
+
+    const items = [
+      { label: 'Goal', value: safe(useCase.goal || useCase.target || useCase.quarterlyGoal) },
+      { label: 'Budget', value: safe(useCase.budget) },
+      useCase.budgetLeft ? { label: 'Budget Left', value: safe(useCase.budgetLeft) } : null,
+      { label: 'Time Left', value: safe(useCase.timeLeft || useCase.timeline?.end) },
+      { label: 'Audience Size', value: safe(useCase.audienceCount) },
+      { label: 'Segments', value: safe(useCase.segments?.length ?? segments?.length) },
+      { label: 'Groups', value: safe(useCase.groups?.length ?? groups?.length) },
+      { label: 'Decision Dimensions', value: safe(decisionDimensions?.length) },
+      { label: 'Guardrails', value: safe(guardrails?.length) },
+      perfText ? { label: 'Performance (Achieved / Expected)', value: perfText } : null,
+      { label: 'Timeline', value: timelineText },
+    ];
+
+    return items.filter(Boolean);
+  }, [useCase, segments?.length, groups?.length, decisionDimensions?.length, guardrails?.length]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -182,7 +212,7 @@ const UseCaseConfigure = ({ useCase, onBack, onActivate = () => { } }) => {
           Cancel
         </button>
         <button
-          onClick={() => onActivate?.(useCase?.id)}
+          onClick={() => setShowReviewModal(true)}
           className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-semibold"
         >
           Save & Activate
@@ -402,6 +432,62 @@ const UseCaseConfigure = ({ useCase, onBack, onActivate = () => { } }) => {
                 className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
               >
                 Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReviewModal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl border border-gray-200 p-6 space-y-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-700">Review use case before going live</p>
+                <h3 className="text-2xl font-bold text-gray-900">{useCase?.name || 'Use Case'}</h3>
+                <p className="text-sm text-gray-600 mt-1">Confirm the setup details below.</p>
+              </div>
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="text-gray-500 hover:text-gray-800 text-sm font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {summaryItems.map((item) => (
+                <div key={item.label} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-[11px] font-semibold text-gray-500 uppercase mb-1 tracking-wide">{item.label}</p>
+                  <p className="text-lg font-bold text-gray-900">{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+              <p className="text-sm font-semibold text-gray-800 mb-2">What happens next?</p>
+              <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                <li>Use case will be activated and eligible for live execution.</li>
+                <li>Current configuration for audiences, guardrails, and actions will be applied.</li>
+                <li>You can pause or edit after activation from the use case detail page.</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+              >
+                Cancel changes
+              </button>
+              <button
+                onClick={() => {
+                  setShowReviewModal(false);
+                  onActivate?.(useCase?.id);
+                }}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-semibold"
+              >
+                Go Live
               </button>
             </div>
           </div>

@@ -19,10 +19,10 @@ const Sidebar = ({ onMenuClick, activeMenu }) => {
   ];
 
   const campaignItems = [
-    { id: 2, label: 'Campaign', icon: Send },
+    { id: 2, label: 'Campaign Agent', icon: Send },
     { id: 3, label: 'Daily Budget', icon: IndianRupee },
-    { id: 4, label: 'Ad-Hoc', icon: Users },
-    { id: 5, label: 'Reporting', icon: BarChart3 }
+    { id: 4, label: 'Segment Agent', icon: Users },
+    { id: 5, label: 'Reporting Agent', icon: BarChart3 }
   ];
 
   return (
@@ -62,7 +62,7 @@ const Sidebar = ({ onMenuClick, activeMenu }) => {
                 onClick={() => toggleSection('ai')}
                 className="w-full text-left text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 hover:text-gray-700 transition-colors"
               >
-                AI DECISIONING
+                AI DECISIONING Agent
               </button>
             )}
             {expandedSections.ai && (
