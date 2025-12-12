@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import Sidebar from './Sidebar';
 import Dashboard from '../pages/Dashboard';
 import Analytics from '../pages/Analytics';
-import Reports from '../pages/Reports';
+import AdHocPage from '../pages/adhoc';
 import Settings from '../pages/Settings';
 import Reporting from '../pages/Reporting';
 import UseCasesMainPage from '../pages/usecases/UseCasesMainPage';
@@ -69,21 +69,21 @@ const MainLayout = () => {
           <div className="w-full max-w-screen-2xl mx-auto">
             <Routes>
               <Route path="/" element={<Navigate to="/use-cases" replace />} />
-            <Route path="/use-cases" element={<UseCasesMainPage />} />
-            <Route path="/use-cases/new" element={<NewUseCaseSetup />} />
-            <Route path="/use-cases/:id" element={<UseCaseDetailPage />} />
-            <Route path="/use-cases/:id/configure" element={<UseCaseConfigurePage />} />
-            <Route path="/campaigns" element={<CampaignsPage />} />
-            <Route path="/campaigns/:id/edit" element={<CampaignEditor />} />
-            <Route path="/daily-budget" element={<DailyBudget />} />
-            <Route path="/campaigns/stats" element={<CampaignStatsPage />} />
-            <Route path="/ad-hoc" element={<Reports />} />
-            <Route path="/reports" element={<Navigate to="/ad-hoc" replace />} />
-            <Route path="/users" element={<Navigate to="/daily-budget" replace />} />
-            <Route path="/reporting" element={<Reporting />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<Navigate to="/use-cases" replace />} />
-          </Routes>
+              <Route path="/use-cases" element={<UseCasesMainPage />} />
+              <Route path="/use-cases/new" element={<NewUseCaseSetup />} />
+              <Route path="/use-cases/:id" element={<UseCaseDetailPage />} />
+              <Route path="/use-cases/:id/configure" element={<UseCaseConfigurePage />} />
+              <Route path="/campaigns" element={<CampaignsPage />} />
+              <Route path="/campaigns/:id/edit" element={<CampaignEditor />} />
+              <Route path="/daily-budget" element={<DailyBudget />} />
+              <Route path="/campaigns/stats" element={<CampaignStatsPage />} />
+              <Route path="/ad-hoc" element={<AdHocPage />} />
+              <Route path="/reports" element={<Navigate to="/ad-hoc" replace />} />
+              <Route path="/users" element={<Navigate to="/daily-budget" replace />} />
+              <Route path="/reporting" element={<Reporting />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/use-cases" replace />} />
+            </Routes>
           </div>
         </div>
       </main>

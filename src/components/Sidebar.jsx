@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Zap, Send, IndianRupee, Users, BarChart3 } from 'lucide-react';
+import { Menu, X, Zap, Send, IndianRupee, Users, BarChart3, Crosshair } from 'lucide-react';
 import bajajLogo from '../assets/bajaj-finserv.png';
 import attributesLogo from '../assets/attributics_logo.jpeg';
 
@@ -21,7 +21,8 @@ const Sidebar = ({ onMenuClick, activeMenu }) => {
   const campaignItems = [
     { id: 2, label: 'Campaign Agent', icon: Send },
     { id: 3, label: 'Daily Budget', icon: IndianRupee },
-    { id: 4, label: 'Segment Agent', icon: Users },
+    { id: 4, label: 'Ad-Hoc', icon: Crosshair },
+    { id: 6, label: 'Segment Agent', icon: Users },
     { id: 5, label: 'Reporting Agent', icon: BarChart3 }
   ];
 
