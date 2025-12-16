@@ -11,6 +11,7 @@ import UseCaseDetailPage from '../pages/usecases/UseCaseDetailPage';
 import UseCaseConfigurePage from '../pages/usecases/UseCaseConfigurePage';
 import DailyBudget from '../pages/DailyBudget';
 import NewUseCaseSetup from '../pages/usecases/NewUseCaseSetup';
+import SegmentAgentPage from '../pages/SegmentAgentPage';
 
 import CampaignsPage from '../pages/CampaignsPage';
 import CampaignEditor from '../pages/CampaignEditor';
@@ -22,6 +23,7 @@ const MainLayout = () => {
   const [activeMenu, setActiveMenu] = useState(1);
 
   const setMenuByPath = (pathname) => {
+    if (pathname.startsWith('/segments')) return 6;
     if (pathname.startsWith('/use-cases')) return 1;
     if (pathname.startsWith('/campaigns')) return 2;
     if (pathname.startsWith('/daily-budget') || pathname.startsWith('/users')) return 3;
@@ -30,9 +32,23 @@ const MainLayout = () => {
     return 1;
   };
 
+  const computeActiveMenu = (pathname, search) => {
+    // Check for segments route first
+    if (pathname.startsWith('/segments')) return 6;
+    // If use-cases page has a panel query, respect it for active menu highlighting (legacy support)
+    try {
+      const params = new URLSearchParams(search);
+      const panel = params.get('panel');
+      if (pathname.startsWith('/use-cases') && panel === 'segments') return 6;
+    } catch (e) {
+      // ignore
+    }
+    return setMenuByPath(pathname);
+  };
+
   useEffect(() => {
-    setActiveMenu(setMenuByPath(location.pathname));
-  }, [location.pathname]);
+    setActiveMenu(computeActiveMenu(location.pathname, location.search));
+  }, [location.pathname, location.search]);
 
   const handleMenuClick = (menuId) => {
     setActiveMenu(menuId);
@@ -45,6 +61,9 @@ const MainLayout = () => {
         break;
       case 3:
         navigate('/daily-budget');
+        break;
+      case 6:
+        navigate('/segments');
         break;
       case 4:
         navigate('/ad-hoc');
@@ -77,6 +96,7 @@ const MainLayout = () => {
               <Route path="/campaigns/:id/edit" element={<CampaignEditor />} />
               <Route path="/daily-budget" element={<DailyBudget />} />
               <Route path="/campaigns/stats" element={<CampaignStatsPage />} />
+              <Route path="/segments" element={<SegmentAgentPage />} />
               <Route path="/ad-hoc" element={<AdHocPage />} />
               <Route path="/reports" element={<Navigate to="/ad-hoc" replace />} />
               <Route path="/users" element={<Navigate to="/daily-budget" replace />} />
