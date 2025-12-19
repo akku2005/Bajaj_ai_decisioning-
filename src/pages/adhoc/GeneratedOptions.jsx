@@ -6,7 +6,12 @@ const GeneratedOptions = ({
     selectedId,
     onSelect,
     onGenerateMore,
-    inputContext
+    inputContext,
+    generatedSegment,
+    onCreateSegment,
+    onCopySQL,
+    segmentCreated,
+    successMessage
 }) => {
     return (
         <div className="flex flex-col h-full bg-gray-50 border-l border-gray-200">

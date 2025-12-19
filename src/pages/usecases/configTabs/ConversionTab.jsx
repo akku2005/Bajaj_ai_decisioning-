@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const ConversionTab = () => {
   const [conversionEvent, setConversionEvent] = useState('Conversion');
-  const [dataAsset, setDataAsset] = useState('subscription_events');
+  const [dataAsset, setDataAsset] = useState('AIP_submitted');
   const [eventTimestamp, setEventTimestamp] = useState('event_date');
   const [matchingEvent, setMatchingEvent] = useState('Action Parameters (pretty exact)');
   const [successMetric, setSuccessMetric] = useState('value');
@@ -47,7 +47,7 @@ const ConversionTab = () => {
             onChange={(e) => setDataAsset(e.target.value)}
             className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="subscription_events">subscription_events</option>
+            <option value="AIP_submitted">AIP_submitted</option>
             <option value="transaction_events">transaction_events</option>
             <option value="application_events">application_events</option>
             <option value="disbursement_events">disbursement_events</option>
@@ -177,7 +177,7 @@ const ConversionTab = () => {
           </button>
         </div>
       </div>
-      </div>
+    </div>
   );
 };
 

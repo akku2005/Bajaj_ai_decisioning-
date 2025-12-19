@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 
-const GuardrailsTab = ({ guardrails = [], onGuardrailsChange = () => {} }) => {
+const GuardrailsTab = ({ guardrails = [], onGuardrailsChange = () => { } }) => {
 
   const [showModal, setShowModal] = useState(false);
   const [newGuardrail, setNewGuardrail] = useState({

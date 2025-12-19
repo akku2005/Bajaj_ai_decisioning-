@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import CampaignEditor from './CampaignEditor';
 import GeneratedOptions from './GeneratedOptions';
+import { useUseCaseStore } from '../../stores/useCaseStore';
 import {
     Layers, Zap, Target, Users, TrendingUp,
     MessageSquare, Send, Sparkles, ArrowRight,
@@ -16,6 +17,16 @@ const AdHocPage = () => {
     const [selectedQuickAction, setSelectedQuickAction] = useState(null);
     const [generatedCampaigns, setGeneratedCampaigns] = useState([]);
     const [selectedCampaign, setSelectedCampaign] = useState(null);
+
+    // Segment generation state (similar to /segments page)
+    const [generatedSegment, setGeneratedSegment] = useState(null);
+    const [segmentCreated, setSegmentCreated] = useState(false);
+    const [status, setStatus] = useState('idle'); // idle | generating | generated | creating | created
+    const [successMessage, setSuccessMessage] = useState('');
+
+    // Persisted store (separate selectors to avoid unstable snapshot warnings)
+    const segments = useUseCaseStore((s) => s.segments);
+    const setSegments = useUseCaseStore((s) => s.setSegments);
 
     // Resizing
     const [chatWidth, setChatWidth] = useState(420);
@@ -229,6 +240,23 @@ const AdHocPage = () => {
             setGeneratedCampaigns(campaigns);
             setInputContext(currentInput);
 
+            // Also generate a lightweight segment estimation similar to the segment creator
+            const audienceSize = Math.floor(Math.random() * 50000) + 20000;
+            const sql = `-- Generated segment\nSELECT user_id\nFROM users\nWHERE ${currentInput.replace(/\band\b/gi, 'AND').replace(/\bor\b/gi, 'OR')}\nLIMIT ${audienceSize};`;
+            setGeneratedSegment({
+                audienceSize,
+                query: currentInput,
+                breakdown: [
+                    { label: 'Primary', value: 45 },
+                    { label: 'Secondary', value: 30 },
+                    { label: 'Others', value: 25 },
+                ],
+                explanation: summarizeQuery(currentInput),
+                sql,
+            });
+            setSegmentCreated(false);
+            setStatus('generated');
+
             setMessages(prev => [...prev, {
                 id: Date.now(),
                 type: 'ai',
@@ -236,6 +264,45 @@ const AdHocPage = () => {
             }]);
         }, 600);
     }, [inputValue, generateCampaigns]);
+
+    // Small helper: make short explanations from query
+    const summarizeQuery = (query) => {
+        if (!query) return [];
+        const parts = query.split(/,| and | who | where | but | or /i).map(p => p.trim()).filter(Boolean);
+        return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1));
+    };
+
+    // Copy SQL for generated segment
+    const handleCopySQL = () => {
+        if (!generatedSegment?.sql) return;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(generatedSegment.sql).then(() => {
+                setSuccessMessage('SQL copied to clipboard');
+                setTimeout(() => setSuccessMessage(''), 2000);
+            }).catch(() => {
+                setSuccessMessage('Could not copy SQL');
+                setTimeout(() => setSuccessMessage(''), 2000);
+            });
+        }
+    };
+
+    // Create and persist a segment from the generated estimation
+    const handleCreateSegment = () => {
+        if (!generatedSegment) return;
+        setStatus('creating');
+        const newSegment = {
+            label: generatedSegment.query.split(/[.\n]/)[0].slice(0, 60) || 'AdHoc Segment',
+            value: generatedSegment.audienceSize,
+            color: 'bg-blue-600',
+            query: generatedSegment.query,
+            createdOn: new Date().toISOString(),
+        };
+        setSegments([newSegment, ...(segments || [])]);
+        setSegmentCreated(true);
+        setStatus('created');
+        setSuccessMessage(`Segment saved — ${generatedSegment.audienceSize.toLocaleString()} users.`);
+        setTimeout(() => setSuccessMessage(''), 3500);
+    };
 
     // Campaign handlers
     const handleCampaignSelect = useCallback((campaign) => {
@@ -494,6 +561,11 @@ const AdHocPage = () => {
                         onSelect={handleCampaignSelect}
                         onGenerateMore={handleGenerateMore}
                         inputContext={inputContext}
+                        generatedSegment={generatedSegment}
+                        onCreateSegment={handleCreateSegment}
+                        onCopySQL={handleCopySQL}
+                        segmentCreated={segmentCreated}
+                        successMessage={successMessage}
                     />
                 </div>
             )}

@@ -6,8 +6,8 @@ import UseCaseDetail from './UseCaseDetail';
 const UseCaseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const getUseCaseById = useUseCaseStore((state) => state.getUseCaseById);
-  const useCase = getUseCaseById(id);
+  // Use a reactive selector to ensure updates trigger re-renders
+  const useCase = useUseCaseStore((state) => state.useCases.find(uc => uc.id === id));
 
   if (!useCase) {
     return (
