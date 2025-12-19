@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tag, Info, TrendingUp, Square, Plus, X } from 'lucide-react';
 
-const FeaturesTab = ({ features = {}, onFeaturesChange = () => {} }) => {
+const FeaturesTab = ({ features = {}, onFeaturesChange = () => { } }) => {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeCategory, setActiveCategory] = useState('');
@@ -40,108 +40,41 @@ const FeaturesTab = ({ features = {}, onFeaturesChange = () => {} }) => {
         <p className="text-sm text-gray-600">Define offers, attributes, and signals for targeting</p>
       </div>
 
-      {/* Features Grid */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Offers Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+      {/* Profile Attributes Section - Full Width */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4 mb-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Tag className="text-blue-600" size={20} />
-            <h3 className="text-base font-semibold text-gray-900">Offers</h3>
+            <Info className="text-purple-600" size={20} />
+            <h3 className="text-base font-semibold text-gray-900">Profile Attributes</h3>
           </div>
-
-          {/* Group Offers */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Group Offers</p>
-              <button
-                onClick={() => openAddModal('groupOffers')}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                title="Add group offer"
-              >
-                <Plus size={14} className="text-gray-600" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(features.groupOffers || []).map((feature) => (
-                <div
-                  key={feature}
-                  className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium flex items-center space-x-1.5 group hover:bg-blue-100 transition-colors"
-                >
-                  <span>{feature}</span>
-                  <button
-                    onClick={() => handleRemoveFeature('groupOffers', feature)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X size={12} className="text-blue-600 hover:text-blue-800" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Personalized Offers */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Personalized Offers</p>
-              <button
-                onClick={() => openAddModal('personalizedOffers')}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                title="Add personalized offer"
-              >
-                <Plus size={14} className="text-gray-600" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(features.personalizedOffers || []).map((feature) => (
-                <div
-                  key={feature}
-                  className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium flex items-center space-x-1.5 group hover:bg-blue-100 transition-colors"
-                >
-                  <span>{feature}</span>
-                  <button
-                    onClick={() => handleRemoveFeature('personalizedOffers', feature)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X size={12} className="text-blue-600 hover:text-blue-800" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <button
+            onClick={() => openAddModal('profileAttributes')}
+            className="p-1 hover:bg-gray-100 rounded transition-colors"
+            title="Add profile attribute"
+          >
+            <Plus size={14} className="text-gray-600" />
+          </button>
         </div>
-
-        {/* Profile Attributes Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Info className="text-purple-600" size={20} />
-              <h3 className="text-base font-semibold text-gray-900">Profile Attributes</h3>
-            </div>
-            <button
-              onClick={() => openAddModal('profileAttributes')}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Add profile attribute"
+        <div className="flex flex-wrap gap-2">
+          {(features.profileAttributes || []).map((feature) => (
+            <div
+              key={feature}
+              className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium flex items-center space-x-1.5 group hover:bg-gray-200 transition-colors"
             >
-              <Plus size={14} className="text-gray-600" />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(features.profileAttributes || []).map((feature) => (
-              <div
-                key={feature}
-                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium flex items-center space-x-1.5 group hover:bg-gray-200 transition-colors"
+              <span>{feature}</span>
+              <button
+                onClick={() => handleRemoveFeature('profileAttributes', feature)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <span>{feature}</span>
-                <button
-                  onClick={() => handleRemoveFeature('profileAttributes', feature)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X size={12} className="text-gray-600 hover:text-gray-800" />
-                </button>
-              </div>
-            ))}
-          </div>
+                <X size={12} className="text-gray-600 hover:text-gray-800" />
+              </button>
+            </div>
+          ))}
         </div>
+      </div>
+
+      {/* Features Grid - Behaviour and Engagement Signals */}
+      <div className="grid grid-cols-2 gap-6">
 
         {/* Behaviour Signals Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">

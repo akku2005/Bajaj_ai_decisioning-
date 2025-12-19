@@ -2,11 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 const defaultSegments = [
-  { label: '25% CREDIT', value: 25, color: 'bg-blue-700' },
-  { label: '10% CURRENT CREDIT: CB/CCI, PL/OLA', value: 10, color: 'bg-green-500' },
-  { label: '10% CONTROL CHECK', value: 10, color: 'bg-yellow-400' },
-  { label: '10% PREVENT CHURN', value: 10, color: 'bg-orange-500' },
-  { label: '10%', value: 10, color: 'bg-red-500' },
+  { label: 'AI Suggestion', value: 80, color: 'bg-blue-600' },
+  { label: 'Control Group', value: 10, color: 'bg-amber-500' },
+  { label: 'Holdout Group', value: 10, color: 'bg-red-500' },
 ];
 
 const defaultGroups = [
@@ -41,33 +39,33 @@ const defaultUseCases = [
     goal: '15% AIP',
     status: 'Active',
     pauseStatus: 'Pause',
-    lead: 1204,
-    aip: '89%',
-    coa: '₹15.72',
-    targetAchieved: 75,
+    lead: 720000,
+    aip: '285690',
+    coa: '₹98',
+    targetAchieved: 61,
     metrics: {
-      lead: 1204,
-      aip: '89%',
-      coa: '₹15.72',
-      targetAchieved: 75,
+      lead: 720000,
+      aip: '285690',
+      coa: '₹98',
+      targetAchieved: 61,
     },
     quarterlyGoal: '15%',
-    budget: 'XMN INR',
+    budget: '65.4 Lakhs',
     target: '15%',
-    achieved: { value: '7.2%', helper: '(48% of target)' },
-    expected: { value: '8.3%', helper: '(55% of target)' },
+    achieved: { value: '9.2%', helper: '(61% of target)' },
+    expected: { value: '10.5%', helper: '(70% of target)' },
     currentPerformance: {
-      actual: '7.2%',
-      expectedProgress: '8.3%',
-      conversionForecast: '7.8%',
+      actual: '9.2%',
+      expectedProgress: '10.5%',
+      conversionForecast: '9.8%',
       cap: '15%',
     },
     // Status Details
-    budgetLeft: '₹8.5 Lakhs',
-    timeLeft: '23 Days',
-    campaignsSent: 12,
-    campaignsScheduled: 4,
-    timeline: { start: 'Oct 1', current: 'Today (Day 68/91)', end: 'Dec 31', progress: 75 },
+    budgetLeft: '₹32.7 Lakhs',
+    timeLeft: '36 Days',
+    campaignsSent: 14,
+    campaignsScheduled: 6,
+    timeline: { start: 'Oct 1', current: 'Today (Day 56/92)', end: 'Dec 31', progress: 61 },
     todayGroup: { improveAppBy: 5, percentage: 5 },
     budgetAdjustment: { increaseSpendBy: 10000 },
     adjustments: { improveAip: 5, increaseSpend: '10000' },
@@ -305,29 +303,29 @@ const defaultActionBankData = {
 const defaultGuardrails = [
   {
     id: 1,
-    name: 'Do not send incentives in November',
-    dimension: 'Offer',
-    appliedGroups: 'Bajaj. Control',
-    description: "Don't send incentives in November, as there will have been an influx of new joiners during the peak month of October",
-    matchingConditions: "where current_month = 11 AND (offer._action_dollars_off > 0 OR offer._action_percentage_off > 0)",
+    name: 'Suppress Communications During Peak Acquisition Periods',
+    dimension: 'User-Level',
+    appliedGroups: 'Bajaj, Control',
+    description: 'Limit outreach during high inflow months to avoid communication fatigue and protect COA efficiency.',
+    matchingConditions: "where is_peak_acquisition_period = TRUE AND user.last_contact_days < 7",
     excludeWhen: 'Match',
   },
   {
     id: 2,
-    name: 'Do not send incentives the weak before ...',
-    dimension: 'Offer',
-    appliedGroups: 'Bajaj. Control',
-    description: "Don't send incentives during the peak weak of the year",
-    matchingConditions: "where days_until_halloween < 7 AND (offer._action_dollars_off > 0 OR offer._action_percentage_off > 0)",
+    name: 'Cooldown After Recent Partner Decision',
+    dimension: 'Partner',
+    appliedGroups: 'Bajaj, Control',
+    description: 'Exclude users who received a partner decision (approval/rejection) within the last 14 days to prevent over-messaging.',
+    matchingConditions: "where days_since_partner_decision < 14 AND partner.status IN ('approved', 'rejected')",
     excludeWhen: 'Match',
   },
   {
     id: 3,
-    name: 'Do not send incentives to customers who ...',
-    dimension: 'Offer',
-    appliedGroups: 'Bajaj. Control',
-    description: 'No incentives to customers who have redeemed an offer in the last 180 days',
-    matchingConditions: "where (offer._action_percentage_off > 0 OR offer._action_dollars_off > 0)",
+    name: 'Block High-Frequency Contacted Users',
+    dimension: 'User-Level',
+    appliedGroups: 'Bajaj, Control',
+    description: 'Exclude users contacted more than 3 times in the last 30 days to reduce fatigue and improve conversion rates.',
+    matchingConditions: "where user.contact_count_30d > 3 AND user.last_aip_date IS NULL",
     excludeWhen: 'Match',
   },
 ];
@@ -687,68 +685,75 @@ export const useUseCaseStore = create(
       segments: defaultSegments,
       groups: defaultGroups,
       decisionDimensions: defaultDecisionDimensions,
-  actionBankData: defaultActionBankData,
-  guardrails: defaultGuardrails,
-  features: defaultFeatures,
-  dailyBudgets: defaultDailyBudgets,
-  goalsSummary: { achieved: 3, total: 4 },
-  setUseCases: (useCases) => set({ useCases }),
-  setSegments: (segments) => set({ segments }),
-  setGroups: (groups) => set({ groups }),
-  setDecisionDimensions: (decisionDimensions) => set({ decisionDimensions }),
-  setActionBankData: (actionBankData) => set({ actionBankData }),
-  setGuardrails: (guardrails) => set({ guardrails }),
-  setFeatures: (features) => set({ features }),
-  setDailyBudgets: (dailyBudgets) => set({ dailyBudgets }),
-  setGoalsSummary: (goalsSummary) => set({ goalsSummary }),
-  updateUseCase: (id, updates) =>
-    set((state) => ({
-      useCases: state.useCases.map((uc) =>
-        uc.id === id ? mergeDeep(uc, updates) : uc
-      ),
-    })),
-  updateDecisionDimensions: (updater) =>
-    set((state) => ({
-      decisionDimensions: resolveUpdate(updater, state.decisionDimensions),
-    })),
-  updateActionBankData: (updater) =>
-    set((state) => ({
-      actionBankData: resolveUpdate(updater, state.actionBankData),
-    })),
-  updateGuardrails: (updater) =>
-    set((state) => ({
-      guardrails: resolveUpdate(updater, state.guardrails),
-    })),
-  updateFeatures: (updater) =>
-    set((state) => ({
-      features: resolveUpdate(updater, state.features),
-    })),
-  updateSegments: (updater) =>
-    set((state) => ({
-      segments: resolveUpdate(updater, state.segments),
-    })),
-  updateGroups: (updater) =>
-    set((state) => ({
-      groups: resolveUpdate(updater, state.groups),
-    })),
-  updateDailyBudget: (channel, updates) =>
-    set((state) => ({
-      dailyBudgets: state.dailyBudgets.map((item) =>
-        item.channel === channel ? mergeDeep(item, updates) : item
-      ),
-    })),
-  getUseCaseById: (id) => get().useCases.find((uc) => uc.id === id),
-  // Campaign Actions
-  addCampaign: (newCampaign) => set((state) => ({
-    campaigns: [newCampaign, ...state.campaigns]
-  })),
-  updateCampaign: (id, updates) => set((state) => ({
-    campaigns: state.campaigns.map((cam) => (cam.id === id ? { ...cam, ...updates } : cam))
-  })),
+      actionBankData: defaultActionBankData,
+      guardrails: defaultGuardrails,
+      features: defaultFeatures,
+      dailyBudgets: defaultDailyBudgets,
+      goalsSummary: { achieved: 3, total: 4 },
+      setUseCases: (useCases) => set({ useCases }),
+      setSegments: (segments) => set({ segments }),
+      setGroups: (groups) => set({ groups }),
+      setDecisionDimensions: (decisionDimensions) => set({ decisionDimensions }),
+      setActionBankData: (actionBankData) => set({ actionBankData }),
+      setGuardrails: (guardrails) => set({ guardrails }),
+      setFeatures: (features) => set({ features }),
+      setDailyBudgets: (dailyBudgets) => set({ dailyBudgets }),
+      setGoalsSummary: (goalsSummary) => set({ goalsSummary }),
+      updateUseCase: (id, updates) =>
+        set((state) => ({
+          useCases: state.useCases.map((uc) =>
+            uc.id === id ? mergeDeep(uc, updates) : uc
+          ),
+        })),
+      updateDecisionDimensions: (updater) =>
+        set((state) => ({
+          decisionDimensions: resolveUpdate(updater, state.decisionDimensions),
+        })),
+      updateActionBankData: (updater) =>
+        set((state) => ({
+          actionBankData: resolveUpdate(updater, state.actionBankData),
+        })),
+      updateGuardrails: (updater) =>
+        set((state) => ({
+          guardrails: resolveUpdate(updater, state.guardrails),
+        })),
+      updateFeatures: (updater) =>
+        set((state) => ({
+          features: resolveUpdate(updater, state.features),
+        })),
+      updateSegments: (updater) =>
+        set((state) => ({
+          segments: resolveUpdate(updater, state.segments),
+        })),
+      updateGroups: (updater) =>
+        set((state) => ({
+          groups: resolveUpdate(updater, state.groups),
+        })),
+      updateDailyBudget: (channel, updates) =>
+        set((state) => ({
+          dailyBudgets: state.dailyBudgets.map((item) =>
+            item.channel === channel ? mergeDeep(item, updates) : item
+          ),
+        })),
+      getUseCaseById: (id) => get().useCases.find((uc) => uc.id === id),
+      // Campaign Actions
+      addCampaign: (newCampaign) => set((state) => ({
+        campaigns: [newCampaign, ...state.campaigns]
+      })),
+      updateCampaign: (id, updates) => set((state) => ({
+        campaigns: state.campaigns.map((cam) => (cam.id === id ? { ...cam, ...updates } : cam))
+      })),
     }),
     {
       name: 'use-case-store',
-      partialize: (state) => ({
+      version: 9,      // Bump version to force fresh data load
+      migrate: (persistedState, version) => {
+        // Return null to force using fresh defaults when version changes
+        if (version < 9) {
+          return null;
+        }
+        return persistedState;
+      }, partialize: (state) => ({
         useCases: state.useCases,
         campaigns: state.campaigns,
         segments: state.segments,

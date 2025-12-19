@@ -43,7 +43,7 @@ const UseCasesPage = () => {
         <div className="space-y-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Use Case</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Use Case Config</h1>
               <p className="text-gray-600 mt-1">Manage active use cases and KPIs for your campaign.</p>
             </div>
             <button

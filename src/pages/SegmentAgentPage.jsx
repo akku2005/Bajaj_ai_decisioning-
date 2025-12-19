@@ -1,10 +1,33 @@
 import React, { useState } from 'react';
 import { Search, Users, Plus, Sparkles, CheckCircle, Zap, Target, TrendingUp } from 'lucide-react';
+import { useUseCaseStore } from '../stores/useCaseStore';
 
 const SegmentAgentPage = () => {
     const [audienceQuery, setAudienceQuery] = useState('');
     const [generatedSegment, setGeneratedSegment] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [segmentCreated, setSegmentCreated] = useState(false);
+    const [status, setStatus] = useState('idle'); // idle | generating | generated | creating | created
+    const [successMessage, setSuccessMessage] = useState('');
+
+    // Subscribe to the persisted store so created segments get saved globally
+    // Use separate selectors (not an object) to avoid unstable selector results and
+    // the React "getSnapshot should be cached" infinite loop warning.
+    const segments = useUseCaseStore((s) => s.segments);
+    const setSegments = useUseCaseStore((s) => s.setSegments);
+
+    // Create a lightweight explanation from the natural language query so we can show
+    // "how the segment was generated" in the right panel. This is intentionally
+    // simple (split by commas and common conjunctions) but useful as a visual cue.
+    const summarizeQuery = (query) => {
+        if (!query) return [];
+        // Break into sentences/clauses using common separators
+        const parts = query.split(/,| and | who | where | but | or /i)
+            .map(p => p.trim())
+            .filter(Boolean);
+        // Make short, human friendly phrases
+        return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1));
+    };
 
     const suggestedSegments = [
         {
@@ -52,20 +75,67 @@ const SegmentAgentPage = () => {
     const handleGenerateSegment = () => {
         if (!audienceQuery.trim()) return;
         setIsGenerating(true);
+        setStatus('generating');
+        setSuccessMessage('');
 
         setTimeout(() => {
+            const audienceSize = Math.floor(Math.random() * 50000) + 20000;
+            const sql = `-- Generated segment\nSELECT user_id\nFROM users\nWHERE ${audienceQuery.replace(/\band\b/gi, 'AND').replace(/\bor\b/gi, 'OR')}\nLIMIT ${audienceSize};`;
+
             setGeneratedSegment({
-                audienceSize: Math.floor(Math.random() * 50000) + 20000,
+                audienceSize,
                 query: audienceQuery,
                 breakdown: [
                     { label: 'High Intent', value: 35 },
                     { label: 'Returning', value: 28 },
                     { label: 'New Users', value: 22 },
                     { label: 'Other', value: 15 },
-                ]
+                ],
+                explanation: summarizeQuery(audienceQuery),
+                sql,
             });
+            // Reset created status when regenerating
+            setSegmentCreated(false);
             setIsGenerating(false);
-        }, 1000);
+            setStatus('generated');
+        }, 800);
+    }; 
+
+    const handleCreateSegment = () => {
+        if (!generatedSegment) return;
+        setStatus('creating');
+
+        // Build a compact segment object for the store
+        const newSegment = {
+            label: generatedSegment.query.split(/[.\n]/)[0].slice(0, 60) || 'Custom Segment',
+            value: generatedSegment.audienceSize,
+            color: 'bg-blue-600',
+            query: generatedSegment.query,
+            createdOn: new Date().toISOString(),
+        };
+
+        // Prepend to list and persist
+        setSegments([newSegment, ...(segments || [])]);
+
+        setSegmentCreated(true);
+        setStatus('created');
+        setSuccessMessage(`Segment saved to library — ${generatedSegment.audienceSize.toLocaleString()} users.`);
+
+        // Clear the message after a short timeout so the UI doesn't stay busy forever
+        setTimeout(() => setSuccessMessage(''), 4000);
+    };
+
+    const handleCopySQL = () => {
+        if (!generatedSegment?.sql) return;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(generatedSegment.sql).then(() => {
+                setSuccessMessage('SQL copied to clipboard');
+                setTimeout(() => setSuccessMessage(''), 2200);
+            }).catch(() => {
+                setSuccessMessage('Could not copy SQL');
+                setTimeout(() => setSuccessMessage(''), 2200);
+            });
+        }
     };
 
     return (
@@ -105,25 +175,40 @@ const SegmentAgentPage = () => {
                         </div>
                     </div>
 
-                    {/* Success State */}
+                    {/* Success State: show a "ready" state after generation and a saved state after creation */}
                     {generatedSegment && (
-                        <div className="bg-white border border-green-200 rounded-lg shadow-sm p-4">
-                            <div className="flex items-center gap-2 text-green-700 mb-2">
-                                <CheckCircle size={18} />
-                                <span className="font-semibold">Segment Created Successfully!</span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-4">{generatedSegment.query}</p>
-                            <div className="flex gap-3">
-                                <button className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                                    Save Draft
-                                </button>
-                                <button className="flex-1 py-2.5 bg-green-600 rounded-lg text-sm font-semibold text-white hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
-                                    <Zap size={14} />
-                                    Create Campaign
-                                </button>
-                            </div>
+                        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                            {!segmentCreated ? (
+                                <>
+                                    <div className="flex items-center gap-2 text-blue-600 mb-2">
+                                        <Sparkles size={18} />
+                                        <span className="font-semibold">Segment Ready</span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-4">{generatedSegment.query}</p>
+                                    <div className="flex gap-3">
+                                        <button className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                            Save Draft
+                                        </button>
+                                        <button
+                                            onClick={handleCreateSegment}
+                                            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 bg-blue-600 rounded-lg text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Zap size={14} />
+                                            Save to Library
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-md p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <CheckCircle size={18} />
+                                        <span className="font-semibold">Segment Created Successfully!</span>
+                                    </div>
+                                    <p>{successMessage}</p>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    )} 
 
                     {/* Suggested Segments */}
                     <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -200,7 +285,53 @@ const SegmentAgentPage = () => {
                                             </div>
                                         ))}
                                     </div>
+
+                                    {/* Generation details - show the query and a short explanation of how the segment was built */}
+                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                        <p className="text-sm font-semibold text-gray-700 mb-2">How this segment was generated</p>
+                                        <div className="bg-gray-50 border border-gray-100 rounded p-3 text-sm text-gray-700 mb-3">
+                                            <div className="wrap-break-word">{generatedSegment.query}</div>
+                                        </div>
+
+                                        {generatedSegment.explanation && generatedSegment.explanation.length > 0 && (
+                                            <ul className="list-disc list-inside text-xs text-gray-600 mb-3">
+                                                {generatedSegment.explanation.map((line, i) => (
+                                                    <li key={i}>{line}</li>
+                                                ))}
+                                            </ul>
+                                        )}
+
+                                        {/* Generated SQL */}
+                                        {generatedSegment.sql && (
+                                            <div className="mt-2">
+                                                <p className="text-xs text-gray-500 mb-1 font-medium">Generated SQL</p>
+                                                <pre className="bg-gray-50 border border-gray-100 rounded p-3 text-xs text-gray-700 mb-2 overflow-auto">{generatedSegment.sql}</pre>
+                                                <div className="flex justify-end">
+                                                    <button onClick={handleCopySQL} className="text-blue-600 text-xs font-semibold hover:text-blue-800">Copy SQL</button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Create Segment button on the right panel */}
+                                        <div className="mt-3">
+                                            {!segmentCreated ? (
+                                                <button
+                                                    onClick={handleCreateSegment}
+                                                    className="w-full py-2.5 bg-blue-600 rounded-lg text-sm font-semibold text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <Zap size={14} />
+                                                    Create Segment
+                                                </button>
+                                            ) : (
+                                                <button className="w-full py-2.5 bg-green-100 rounded-lg text-sm font-semibold text-green-800 flex items-center justify-center gap-2" disabled>
+                                                    <CheckCircle size={14} />
+                                                    Segment Created
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div className="p-4 border-t border-gray-200 bg-blue-50">
                                     <div className="flex items-start gap-2">
                                         <TrendingUp size={14} className="text-blue-600 mt-0.5" />

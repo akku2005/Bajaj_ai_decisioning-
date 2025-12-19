@@ -279,16 +279,16 @@ const UseCaseDetail = ({ useCase, onBack, onEdit }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="w-full">
-          <StatCard label="Total Leads" value={useCase.lead?.toLocaleString() || '0'} />
+        <div className="w-full">
+          <StatCard label="Leads till Date" value={useCase.lead?.toLocaleString() || '0'} />
         </div>
         <div className="w-full">
-          <StatCard label="Current AIP" value={useCase.aip || '—'} />
+          <StatCard label="AIPs till Date" value={useCase.aip || '—'} />
         </div>
         <div className="w-full">
-          <StatCard label="Cost of Acquisition (COA)" value={useCase.coa || '—'} />
+          <StatCard label="Cost of AIP" value={useCase.coa || '—'} />
         </div>
-        
+
       </div>
 
       {showAssistantCard && (
@@ -353,6 +353,7 @@ const UseCaseDetail = ({ useCase, onBack, onEdit }) => {
         }}
         initialMessage={initialMessage}
         useCaseName={useCase.name}
+        useCase={useCase}
         inlineMode={false}
       />
     </div>
